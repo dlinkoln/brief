@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/vue-form-wizard@0.8.4/dist/vue-form-wizard.min.css">
+  <title>Бриф</title>
+  <style>
+    .has-error input {
+      border: 1px solid red;
+    }
+
+    .has-error input:focus {
+      border: 1px solid red;
+    }
+
+    .help-block {
+      color: red;
+    }
+
+    #app {
+      max-width: 991px;
+      padding-left: 15px;
+      padding-right: 15px;
+      margin: 0px auto;
+    }
+
+    span {
+      display: block;
+      pointer-events: inherit;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div>
+      <form-wizard shape="square" title="Бриф" subtitle="" color="#3498db" next-button-text="Отправить" back-
+        button-text="Назад">
+        <tab-content title="Контактные данные *" :before-change="()=>validateStep('contacts')">
+          <contacts ref="contacts" @on-validate="mergePartialModels" company-name-title="Название компании *"
+            contact-face-title="Контактное лицо *" phone-title="Телефон *">
+          </contacts>
+        </tab-content>
+        <tab-content title=" С какими системами знакомы? * " :before-change="()=>validateStep('sysFamillarity')">
+          <sys-famillarity ref="sysFamillarity" @on-validate="mergePartialModels"
+            :checkbox-systems="sysFamillarityCheckbox">
+          </sys-famillarity>
+        </tab-content>
+        <tab-content title="Last step">
+          Here is your final model:
+          <pre>{{finalModel}}</pre>
+        </tab-content>
+      </form-wizard>
+    </div>
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js" type="application/javascript"></script>
+  <script src="https://unpkg.com/vue-form-wizard/dist/vue-form-wizard.js"></script>
+
+  <script src="https://unpkg.com/vuelidate@0.7.5/dist/vuelidate.min.js"></script>
+  <script src="https://unpkg.com/vuelidate@0.7.5/dist/validators.min.js"></script>
+  <script>
+    Vue.use(window.vuelidate.default)
+    const {
+      required,
+      minLength,
+      email,
+      numeric
+    } = window.validators
+    Vue.use(VueFormWizard)
+
+    Vue.component('contacts', {
+      props: {
+        companyNameTitle: {
+          companyName: String,
+          default: 'Название компании *'
+        },
+        contactFaceTitle: {
+          contactFaceTitle: String,
+          default: 'Контактное лицо *'
+        },
+        phoneTitle: {
+          contactFaceTitle: Number,
+          default: 'Телефон *'
+        },
+        emailTitle: {
+          contactFaceTitle: String,
+          default: 'Email *'
+        },
+        siteTitle: {
+          siteTitle: String,
+          default: 'Сайт *'
+        },
+        cityTitle: {
+          siteTitle: String,
+          default: 'Город *'
+        },
+        activityFieldTitle: {
+          activityFieldTitle: String,
+          default: "Сфера деятельности"
+        }
+
+
+      },
+      template: `<div>
+          <div class="form-group" v-bind:class="{ 'has-error': $v.firstName.$error }">
+            <label>{{companyNameTitle}}</label>
+            <input class="form-control" v-model.trim="firstName" @input="$v.firstName.$touch()">
+             <span class="help-block" v-if="$v.firstName.$error && !$v.firstName.required">Введите имя компании</span>
+          </div>
+
+          <div class="form-group" v-bind:class="{ 'has-error': $v.contactFace.$error }">
+            <label>{{contactFaceTitle}}</label>
+            <input class="form-control" v-model.trim="contactFace" @input="$v.contactFace.$touch()">
+             <span class="help-block" v-if="$v.contactFace.$error && !$v.contactFace.required">Введите Контактное лицо</span>
+          </div>
+
+          <div class="form-group" v-bind:class="{ 'has-error': $v.phone.$error }">
+            <label>{{phoneTitle}}</label>
+            <input class="form-control" v-model.trim="phone" @input="$v.phone.$touch()">
+             <span class="help-block" v-if="$v.phone.$error && !$v.phone.required">Введите телефон</span>
+             <span class="help-block" v-if="$v.phone.$error && !$v.phone.numeric">Не валидный телефон</span>
+          </div>
+ 
+          
+          <div class="form-group" v-bind:class="{ 'has-error': $v.email.$error }">
+            <label>{{emailTitle}}</label>
+            <input class="form-control" v-model.trim="email" @input="$v.email.$touch()">
+            <span class="help-block" v-if="$v.email.$error && !$v.email.required">Введите ваш E-mail</span>
+            <span class="help-block" v-if="$v.email.$error && !$v.email.email">Этот E-mail не валидный</span>
+          </div>
+
+          <div class="form-group" v-bind:class="{ 'has-error': $v.site.$error }">
+            <label>{{siteTitle}}</label>
+            <input class="form-control" v-model.trim="site" @input="$v.site.$touch()">
+            <span class="help-block" v-if="$v.site.$error && !$v.site.required">Введите ваш сайт</span>
+          </div>
+          <div class="form-group" v-bind:class="{ 'has-error': $v.city.$error }">
+            <label>{{cityTitle}}</label>
+            <input class="form-control" v-model.trim="city" @input="$v.city.$touch()">
+            <span class="help-block" v-if="$v.city.$error && !$v.city.required">Введите ваш город</span>
+          </div>
+          <div class="form-group">
+            <label>{{activityFieldTitle}}</label>
+            <input class="form-control" v-model.trim="activity" >
+          </div>
+        </div>`,
+      data() {
+        return {
+          firstName: '',
+          contactFace: '',
+          email: '',
+          phone: '',
+          site: '',
+          city: '',
+          activity: '',
+        }
+      },
+      validations: {
+        firstName: {
+          required
+        },
+        contactFace: {
+          required
+        },
+        email: {
+          required,
+          email
+        },
+        phone: {
+          required,
+          numeric
+
+        },
+        site: {
+          required,
+        },
+        city: {
+          required,
+        },
+        form: ['firstName', 'contactFace', 'phone', 'email', 'site', 'city']
+      },
+      methods: {
+        validate() {
+          this.$v.form.$touch();
+          var isValid = !this.$v.form.$invalid
+          this.$emit('on-validate', this.$data, isValid)
+          return isValid
+        }
+      }
+    })
+
+    Vue.component('sysFamillarity', {
+      props: {
+        checkboxSystems: {
+          checkboxSystems: Array,
+        }
+      },
+      template: `<div>
+          <div v-for="checkboxSys in checkboxSystems" >
+            <span  @click="checkNone" :id="checkboxSys.id"><label><input type="checkbox" v-model="checkboxSys.id"> {{checkboxSys.name}}</label></span>
+          </div>
+        </div>`,
+      data() {
+        return {
+
+        }
+      },
+      validations: {
+
+      },
+      methods: {
+        checkNone(e) {
+          if (e) {
+            switch (parseInt(e.currentTarget.id)) {
+              case 9:
+
+            }
+          }
+        },
+        validate() {
+          this.$v.form.$touch();
+          var isValid = !this.$v.form.$invalid
+          this.$emit('on-validate', this.$data, isValid)
+          return isValid
+        }
+      }
+    })
+    new Vue({
+      el: '#app',
+
+      data: {
+        sysFamillarityCheckbox: [
+          { id: "1", name: "AMOcrm" },
+          { id: "2", name: "Bitrix24" },
+          { id: "3", name: "Pipedrive" },
+          { id: "4", name: "OneBox" },
+          { id: "5", name: "Zoho" },
+          { id: "6", name: "MS Dynamics" },
+          { id: "7", name: "Siebel" },
+          { id: "8", name: "1С ERP" },
+          { id: "9", name: "Ни с какими" },
+        ],
+        finalModel: {},
+      },
+      methods: {
+        validateStep(name) {
+          var refToValidate = this.$refs[name];
+          return refToValidate.validate();
+        },
+        mergePartialModels(model, isValid) {
+          if (isValid) {
+            // merging each step model into the final model
+            this.finalModel = Object.assign({}, this.finalModel, model)
+          }
+        }
+      }
+    })
+
+  </script>
+</body>
+
+</html>
